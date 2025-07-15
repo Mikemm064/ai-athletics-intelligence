@@ -559,3 +559,298 @@
                 grid-template-columns: 1fr;
             }
         }
+    </style>
+</head>
+<body>
+    <div class="ai-grid-bg"></div>
+    
+    <div class="container">
+        <!-- Hero Section -->
+        <div class="hero">
+            <div class="ai-badge">🤖 AI-POWERED SEO INTELLIGENCE</div>
+            <h1>College Sports SEO Intelligence</h1>
+            <p class="subtitle">Discover untapped revenue opportunities through AI-driven search gap analysis. Find where your competitors are winning ticket sales and fan engagement.</p>
+        </div>
+
+        <!-- Features Grid -->
+        <div class="ai-features">
+            <div class="ai-feature-card">
+                <div class="ai-icon">🎯</div>
+                <div class="ai-feature-title">Revenue Gap Analysis</div>
+                <div class="ai-feature-description">Identify where ticket resellers are capturing your revenue through advanced SERP analysis and competitor intelligence.</div>
+            </div>
+            <div class="ai-feature-card">
+                <div class="ai-icon">🚀</div>
+                <div class="ai-feature-title">Real-Time SEO Intelligence</div>
+                <div class="ai-feature-description">Live DataForSEO integration provides instant insights into search rankings, competitor positioning, and optimization opportunities.</div>
+            </div>
+            <div class="ai-feature-card">
+                <div class="ai-icon">💡</div>
+                <div class="ai-feature-title">AI-Driven Recommendations</div>
+                <div class="ai-feature-description">Smart content suggestions and SEO strategies tailored specifically for college athletics marketing teams.</div>
+            </div>
+        </div>
+
+        <!-- Main Analyzer -->
+        <div class="main-analyzer">
+            <div class="analyzer-header">
+                <h2 class="analyzer-title">🏈 Team SEO Gap Analyzer</h2>
+                <p class="analyzer-subtitle">Analyze your team's search presence and discover revenue opportunities being captured by competitors</p>
+            </div>
+
+            <form id="analyzeForm">
+                <div class="form-grid">
+                    <div>
+                        <div class="form-group">
+                            <label class="form-label" for="teamName">Team Name</label>
+                            <input type="text" id="teamName" name="teamName" class="form-input" 
+                                   placeholder="Duke Blue Devils" required>
+                            <div class="team-suggestions">
+                                <span class="suggestions-label">Popular teams:</span>
+                                <div class="team-pills">
+                                    <span class="team-pill" onclick="selectTeam('Duke Blue Devils')">Duke Blue Devils</span>
+                                    <span class="team-pill" onclick="selectTeam('UNC Tar Heels')">UNC Tar Heels</span>
+                                    <span class="team-pill" onclick="selectTeam('Michigan Wolverines')">Michigan Wolverines</span>
+                                    <span class="team-pill" onclick="selectTeam('Alabama Crimson Tide')">Alabama Crimson Tide</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="form-group">
+                            <label class="form-label" for="sport">Primary Sport</label>
+                            <select id="sport" name="sport" class="form-input" required>
+                                <option value="">Select Sport</option>
+                                <option value="football">Football</option>
+                                <option value="basketball">Basketball</option>
+                                <option value="baseball">Baseball</option>
+                                <option value="soccer">Soccer</option>
+                                <option value="volleyball">Volleyball</option>
+                                <option value="hockey">Hockey</option>
+                                <option value="lacrosse">Lacrosse</option>
+                                <option value="tennis">Tennis</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="email">Email Address</label>
+                    <input type="email" id="email" name="email" class="form-input" 
+                           placeholder="athletics@university.edu" required>
+                </div>
+
+                <button type="submit" class="ai-analyze-btn" id="analyzeBtn">
+                    <div class="ai-loading-spinner" id="loadingSpinner"></div>
+                    <span id="btnText">🚀 Analyze SEO Gaps</span>
+                </button>
+            </form>
+        </div>
+
+        <!-- Results Section -->
+        <div id="results" class="ai-results" style="display: none;">
+            <!-- Results will be populated by JavaScript -->
+        </div>
+    </div>
+
+    <script>
+        let isAnalyzing = false;
+
+        function selectTeam(teamName) {
+            document.getElementById('teamName').value = teamName;
+        }
+
+        function showLoading() {
+            isAnalyzing = true;
+            const btn = document.getElementById('analyzeBtn');
+            const spinner = document.getElementById('loadingSpinner');
+            const btnText = document.getElementById('btnText');
+            
+            btn.disabled = true;
+            spinner.style.display = 'inline-block';
+            btnText.textContent = 'Analyzing SEO Intelligence...';
+        }
+
+        function hideLoading() {
+            isAnalyzing = false;
+            const btn = document.getElementById('analyzeBtn');
+            const spinner = document.getElementById('loadingSpinner');
+            const btnText = document.getElementById('btnText');
+            
+            btn.disabled = false;
+            spinner.style.display = 'none';
+            btnText.textContent = '🚀 Analyze SEO Gaps';
+        }
+
+        function showError(message) {
+            const results = document.getElementById('results');
+            results.innerHTML = `<div class="error">❌ ${message}</div>`;
+            results.style.display = 'block';
+        }
+
+        function displayResults(data) {
+            const results = document.getElementById('results');
+            const statusBadge = data.meta.realDataPoints > 0 ? 
+                '<span class="ai-status-badge live">🔴 LIVE DATA</span>' : 
+                '<span class="ai-status-badge simulated">🟡 MARKET ANALYSIS</span>';
+
+            let resultsHTML = `
+                <div class="results-header">
+                    <h2 class="results-title">🎯 SEO Gap Analysis Results</h2>
+                    <p class="results-subtitle">${data.teamName} • ${data.sport} ${statusBadge}</p>
+                </div>
+
+                <div class="ai-summary-grid">
+                    <div class="ai-summary-card">
+                        <div class="summary-value">${data.analyses.length}</div>
+                        <div class="summary-label">Opportunities Found</div>
+                    </div>
+                    <div class="ai-summary-card">
+                        <div class="summary-value">${data.summary.totalSearchVolume.toLocaleString()}</div>
+                        <div class="summary-label">Monthly Search Volume</div>
+                    </div>
+                    <div class="ai-summary-card">
+                        <div class="summary-value">${data.summary.highOpportunity}</div>
+                        <div class="summary-label">High-Priority Gaps</div>
+                    </div>
+                    <div class="ai-summary-card">
+                        <div class="summary-value">${Math.round(data.meta.processingTimeMs / 1000)}s</div>
+                        <div class="summary-label">Analysis Time</div>
+                    </div>
+                </div>
+            `;
+
+            if (data.analyses.length > 0) {
+                resultsHTML += '<h3 style="color: #3a7bd5; margin-bottom: 30px; font-size: 1.5rem;">🔍 Revenue Opportunities</h3>';
+                
+                data.analyses.forEach((analysis, index) => {
+                    const priorityColor = analysis.opportunity >= 7 ? '#00ff88' : analysis.opportunity >= 5 ? '#ffc107' : '#8b949e';
+                    
+                    resultsHTML += `
+                        <div class="ai-opportunity-card">
+                            <div class="opportunity-header">
+                                <div style="display: flex; align-items: flex-start;">
+                                    <div class="priority-badge">${index + 1}</div>
+                                    <div class="opportunity-info">
+                                        <div class="opportunity-keyword">"${analysis.keyword}"</div>
+                                        <div class="opportunity-type">${analysis.gapType} • Team Rank: ${analysis.teamRank}</div>
+                                    </div>
+                                </div>
+                                <div class="ai-score">Score: ${analysis.opportunity}/10</div>
+                            </div>
+                            
+                            <div class="opportunity-details">
+                                <div class="detail-card">
+                                    <div class="detail-title">Gap Analysis</div>
+                                    <div class="detail-content">${analysis.gapReason}</div>
+                                </div>
+                                <div class="detail-card">
+                                    <div class="detail-title">Revenue Impact</div>
+                                    <div class="detail-content">${analysis.revenueImpact}</div>
+                                </div>
+                                <div class="detail-card">
+                                    <div class="detail-title">Search Volume</div>
+                                    <div class="detail-content">${analysis.searchVolume.toLocaleString()} monthly searches</div>
+                                </div>
+                                <div class="detail-card">
+                                    <div class="detail-title">Content Suggestion</div>
+                                    <div class="detail-content">${analysis.contentSuggestion.title} - ${analysis.contentSuggestion.format}</div>
+                                </div>
+                            </div>
+
+                            ${analysis.competitors.length > 0 ? `
+                                <div style="margin-top: 20px;">
+                                    <div class="detail-title">Top Competitors</div>
+                                    <div class="detail-content">
+                                        ${analysis.competitors.map(comp => `#${comp.rank}: ${comp.domain}`).join(' • ')}
+                                    </div>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                });
+
+                resultsHTML += `
+                    <div class="ai-insights">
+                        <h3 class="insights-title">🧠 AI-Powered Insights</h3>
+                        <div class="insight-item">
+                            <strong>Revenue Opportunity:</strong> ${data.summary.highOpportunity} high-priority gaps could generate significant ticket revenue by outranking resellers.
+                        </div>
+                        <div class="insight-item">
+                            <strong>Quick Wins:</strong> Focus on ticket-related keywords where your official site isn't ranking in the top 3 positions.
+                        </div>
+                        <div class="insight-item">
+                            <strong>Strategy:</strong> Create dedicated landing pages for each identified gap with clear CTAs directing to official ticket sales.
+                        </div>
+                    </div>
+                `;
+            } else {
+                resultsHTML += `
+                    <div class="loading">
+                        🎉 Great news! Your team appears to be well-optimized for the analyzed keywords. 
+                        Try analyzing different sports or competitor teams for more insights.
+                    </div>
+                `;
+            }
+
+            results.innerHTML = resultsHTML;
+            results.style.display = 'block';
+            results.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        document.getElementById('analyzeForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (isAnalyzing) return;
+
+            const formData = new FormData(e.target);
+            const data = {
+                teamName: formData.get('teamName'),
+                sport: formData.get('sport'),
+                email: formData.get('email')
+            };
+
+            if (!data.teamName || !data.sport || !data.email) {
+                showError('Please fill in all required fields');
+                return;
+            }
+
+            showLoading();
+
+            try {
+                const response = await fetch('/api/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    displayResults(result);
+                } else {
+                    showError(result.error || 'Analysis failed. Please try again.');
+                }
+            } catch (error) {
+                console.error('Analysis error:', error);
+                showError('Network error. Please check your connection and try again.');
+            } finally {
+                hideLoading();
+            }
+        });
+
+        // Health check on page load
+        window.addEventListener('load', async () => {
+            try {
+                const response = await fetch('/api/health');
+                const health = await response.json();
+                console.log('🏥 Health Check:', health);
+            } catch (error) {
+                console.error('❌ Health check failed:', error);
+            }
+        });
+    </script>
+</body>
+</html>
