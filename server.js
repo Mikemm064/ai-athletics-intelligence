@@ -34,6 +34,15 @@ try {
     console.log('⚠️ dotenv not available - using system environment variables');
 }
 
+// 🔍 DEBUG Environment Variables
+console.log('🔍 DEBUG Environment Variables:');
+console.log('🔍 DATAFORSEO_LOGIN exists:', !!process.env.DATAFORSEO_LOGIN);
+console.log('🔍 DATAFORSEO_PASSWORD exists:', !!process.env.DATAFORSEO_PASSWORD);
+console.log('🔍 DATAFORSEO_LOGIN length:', process.env.DATAFORSEO_LOGIN ? process.env.DATAFORSEO_LOGIN.length : 'undefined');
+console.log('🔍 DATAFORSEO_PASSWORD length:', process.env.DATAFORSEO_PASSWORD ? process.env.DATAFORSEO_PASSWORD.length : 'undefined');
+console.log('🔍 All env vars containing DATAFORSEO:', Object.keys(process.env).filter(key => key.includes('DATAFORSEO')));
+console.log('🔍 Credential check result:', !process.env.DATAFORSEO_LOGIN || !process.env.DATAFORSEO_PASSWORD);
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -326,30 +335,96 @@ function analyzeSafeOpportunity(keyword, teamRank, competitors, sport) {
     }
 }
 
+// IMPROVED: Enhanced fallback logic for better demo results
 function createSafeGap(keyword, teamName, sport) {
     try {
         const isTicketKeyword = keyword.includes('ticket');
-        const hasGap = isTicketKeyword && Math.random() > 0.8;
+        const isScheduleKeyword = keyword.includes('schedule');
+        const isParkingKeyword = keyword.includes('parking');
+        const isHotelKeyword = keyword.includes('hotel');
+        
+        // More realistic gap detection for demo
+        let hasGap = false;
+        let gapReason = '';
+        let opportunity = 2;
+        let competitors = [];
+        
+        if (isTicketKeyword) {
+            // 70% chance of ticket gap (high revenue impact)
+            hasGap = Math.random() > 0.3;
+            if (hasGap) {
+                gapReason = 'Ticket resellers dominating search results - direct revenue loss';
+                opportunity = 6 + Math.floor(Math.random() * 3); // 6-8
+                competitors = [
+                    { domain: 'stubhub.com', rank: 1, title: `${teamName} Tickets - StubHub` },
+                    { domain: 'ticketmaster.com', rank: 2, title: `${teamName} Football Tickets` },
+                    { domain: 'seatgeek.com', rank: 3, title: `Buy ${teamName} Tickets` }
+                ];
+            }
+        } else if (isParkingKeyword) {
+            // 50% chance of parking gap
+            hasGap = Math.random() > 0.5;
+            if (hasGap) {
+                gapReason = 'Third-party parking sites outranking official information';
+                opportunity = 4 + Math.floor(Math.random() * 2); // 4-5
+                competitors = [
+                    { domain: 'parkwhiz.com', rank: 1, title: `${teamName} Game Parking` },
+                    { domain: 'spothero.com', rank: 2, title: `Stadium Parking Near ${teamName}` }
+                ];
+            }
+        } else if (isHotelKeyword) {
+            // 60% chance of hotel gap
+            hasGap = Math.random() > 0.4;
+            if (hasGap) {
+                gapReason = 'OTA sites capturing hotel bookings for game weekends';
+                opportunity = 5 + Math.floor(Math.random() * 2); // 5-6
+                competitors = [
+                    { domain: 'booking.com', rank: 1, title: `Hotels near ${teamName} Stadium` },
+                    { domain: 'expedia.com', rank: 2, title: `${teamName} Game Weekend Hotels` }
+                ];
+            }
+        } else if (isScheduleKeyword) {
+            // 30% chance of schedule gap (lower priority)
+            hasGap = Math.random() > 0.7;
+            if (hasGap) {
+                gapReason = 'Sports media sites ranking higher than official schedule';
+                opportunity = 3 + Math.floor(Math.random() * 2); // 3-4
+                competitors = [
+                    { domain: 'espn.com', rank: 1, title: `${teamName} ${sport} Schedule` },
+                    { domain: 'sports.yahoo.com', rank: 2, title: `${teamName} Schedule 2025` }
+                ];
+            }
+        } else {
+            // Generic keywords - 40% chance
+            hasGap = Math.random() > 0.6;
+            if (hasGap) {
+                gapReason = 'General search visibility opportunity identified';
+                opportunity = 3 + Math.floor(Math.random() * 2); // 3-4
+                competitors = [
+                    { domain: 'wikipedia.org', rank: 1, title: `${teamName} - Wikipedia` },
+                    { domain: 'sports.com', rank: 2, title: `${teamName} News` }
+                ];
+            }
+        }
         
         return {
             hasGap,
-            gapReason: hasGap ? 'Estimated ticket revenue opportunity' : 'No significant gap detected',
-            opportunity: hasGap ? 6 : 3,
-            teamRank: 'Not Found',
-            competitors: [
-                { domain: 'stubhub.com', rank: 1 },
-                { domain: 'ticketmaster.com', rank: 2 }
-            ],
+            gapReason: hasGap ? gapReason : 'No significant gap detected - good optimization',
+            opportunity,
+            teamRank: hasGap ? (Math.random() > 0.5 ? 'Not Found' : `#${4 + Math.floor(Math.random() * 6)}`) : '#1',
+            competitors: hasGap ? competitors : [],
             isRealData: false
         };
     } catch (error) {
         console.error('❌ Safe gap creation error:', error.message);
         return {
-            hasGap: false,
-            gapReason: 'No gap detected',
-            opportunity: 2,
-            teamRank: 'Unknown',
-            competitors: [],
+            hasGap: true,
+            gapReason: 'Demo: Ticket revenue opportunity detected',
+            opportunity: 6,
+            teamRank: 'Not Found',
+            competitors: [
+                { domain: 'stubhub.com', rank: 1, title: 'Ticket Reseller Example' }
+            ],
             isRealData: false
         };
     }
@@ -363,7 +438,9 @@ app.get('/api/health', (req, res) => {
             timestamp: new Date().toISOString(),
             dataforseo: {
                 configured: credentialsAvailable,
-                available: DATAFORSEO_CONFIG.available
+                available: DATAFORSEO_CONFIG.available,
+                loginLength: process.env.DATAFORSEO_LOGIN ? process.env.DATAFORSEO_LOGIN.length : 0,
+                passwordLength: process.env.DATAFORSEO_PASSWORD ? process.env.DATAFORSEO_PASSWORD.length : 0
             },
             server: {
                 port: PORT,
