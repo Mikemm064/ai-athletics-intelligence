@@ -217,7 +217,7 @@ async function getSERPData(keyword) {
     }
 }
 
-// SIMPLIFIED: Safe team site detection (no complex logic)
+// IMPROVED: Enhanced team site detection
 function isTeamSite(domain, teamName) {
     try {
         if (!domain || !teamName) return false;
@@ -225,35 +225,165 @@ function isTeamSite(domain, teamName) {
         const cleanDomain = domain.toLowerCase();
         const cleanTeamName = teamName.toLowerCase();
         
-        // Simple checks that won't cause errors
+        // 1. Educational domains (.edu)
         if (cleanDomain.includes('.edu')) {
             return true;
         }
         
-        // Basic team name matching
-        const firstWord = cleanTeamName.split(' ')[0];
-        if (firstWord && firstWord.length > 3 && cleanDomain.includes(firstWord)) {
+        // 2. Official team domains (common patterns)
+        const officialDomains = [
+            'rolltide.com', // Alabama
+            'goduke.com', // Duke
+            'goheels.com', // UNC
+            'mgoblue.com', // Michigan
+            'gostanford.com', // Stanford
+            'georgiadogs.com', // Georgia
+            'ukathletics.com', // Kentucky
+            'lsusports.net', // LSU
+            'auburntigers.com', // Auburn
+            'utsports.com', // Tennessee
+            'floridagators.com', // Florida
+            'gamecocksonline.com', // South Carolina
+            '12thman.com', // Texas A&M
+            'texassports.com', // Texas
+            'soonersports.com', // Oklahoma
+            'huskers.com', // Nebraska
+            'ohiostatebuckeyes.com', // Ohio State
+            'pennstatelive.com', // Penn State
+            'scarletknights.com', // Rutgers
+            'gophersports.com', // Minnesota
+            'hawkeyesports.com', // Iowa
+            'bigten.org', // Big Ten
+            'sec.com', // SEC
+            'espn.com', // Sometimes official for smaller schools
+            'gopack.com', // NC State
+            'ramblinwreck.com', // Georgia Tech
+            'hokiesports.com', // Virginia Tech
+            'thesabre.com', // Buffalo
+            'bcagle.com', // Boston College
+            'miamihurricanes.com', // Miami
+            'seminoles.com', // Florida State
+            'clemsontigers.com', // Clemson
+            'usctrojans.com', // USC
+            'uclabruins.com', // UCLA
+            'calbears.com', // Cal Berkeley
+            'gohuskies.com', // Washington
+            'goducks.com', // Oregon
+            'oregonstate.edu', // Oregon State
+            'utahutes.com', // Utah
+            'cubuffs.com', // Colorado
+            'arizonawildcats.com', // Arizona
+            'arizonastate.edu', // Arizona State
+        ];
+        
+        if (officialDomains.some(official => cleanDomain.includes(official))) {
             return true;
         }
         
+        // 3. University domain patterns
+        const universityPatterns = [
+            'athletics.', // athletics.university.edu
+            'sports.', // sports.university.edu
+            'tickets.', // tickets.university.edu
+        ];
+        
+        if (universityPatterns.some(pattern => cleanDomain.includes(pattern))) {
+            return true;
+        }
+        
+        // 4. Team name matching (improved)
+        const teamWords = cleanTeamName.split(' ').filter(word => word.length > 3);
+        
+        for (const word of teamWords) {
+            // Skip common words that appear in many domains
+            if (['team', 'sports', 'athletics', 'university', 'college', 'state'].includes(word)) {
+                continue;
+            }
+            
+            // Check if team word appears in domain
+            if (cleanDomain.includes(word)) {
+                // Additional validation - domain should be short and team-related
+                if (cleanDomain.length < 30 && 
+                    (cleanDomain.includes('.com') || cleanDomain.includes('.edu') || cleanDomain.includes('.org'))) {
+                    return true;
+                }
+            }
+        }
+        
+        // 5. Specific school/team identifiers
+        const teamIdentifiers = {
+            'alabama': ['rolltide', 'bama', 'crimson', 'tide'],
+            'duke': ['goduke', 'dukeu', 'duke'],
+            'north carolina': ['goheels', 'unc', 'tarheels'],
+            'michigan': ['mgoblue', 'umich', 'wolverines'],
+            'georgia': ['georgiadogs', 'ugadogs', 'bulldogs'],
+            'stanford': ['gostanford', 'stanford'],
+            'texas': ['texassports', 'utexas', 'longhorns'],
+            'oklahoma': ['soonersports', 'sooners'],
+            'ohio state': ['ohiostate', 'buckeyes'],
+            'penn state': ['pennstate', 'nittany'],
+            'florida': ['floridagators', 'gators'],
+            'miami': ['miamihurricanes', 'hurricanes'],
+            'clemson': ['clemsontigers', 'tigers'],
+            'oregon': ['goducks', 'ducks'],
+            'washington': ['gohuskies', 'huskies'],
+            'usc': ['usctrojans', 'trojans'],
+            'ucla': ['uclabruins', 'bruins']
+        };
+        
+        for (const [school, identifiers] of Object.entries(teamIdentifiers)) {
+            if (cleanTeamName.includes(school)) {
+                if (identifiers.some(id => cleanDomain.includes(id))) {
+                    return true;
+                }
+            }
+        }
+        
         return false;
+        
     } catch (error) {
         console.error('❌ Team site detection error:', error.message);
         return false;
     }
 }
 
-// SIMPLIFIED: Safe gap analysis
+// Debug function for team site detection
+function debugTeamSiteDetection(domain, teamName) {
+    console.log(`🔍 Team Site Debug: "${domain}" for "${teamName}"`);
+    console.log(`🔍 Domain clean: "${domain.toLowerCase()}"`);
+    console.log(`🔍 Team clean: "${teamName.toLowerCase()}"`);
+    console.log(`🔍 Is team site: ${isTeamSite(domain, teamName)}`);
+}
+
+// IMPROVED: Safe gap analysis with better SERP data handling
 function analyzeGap(serpData, teamName, keyword, sport) {
     try {
         console.log(`🔍 Gap Analysis: "${keyword}"`);
         
-        if (!serpData?.tasks?.[0]?.result?.[0]?.items) {
+        // Debug: Show SERP response structure (first 500 chars)
+        if (serpData) {
+            console.log(`🔍 SERP Response Structure:`, JSON.stringify(serpData, null, 2).substring(0, 500));
+        }
+        
+        // Check multiple possible response structures
+        let items = null;
+        
+        if (serpData?.tasks?.[0]?.result?.[0]?.items) {
+            items = serpData.tasks[0].result[0].items;
+        } else if (serpData?.tasks?.[0]?.results?.[0]?.items) {
+            items = serpData.tasks[0].results[0].items;
+        } else if (serpData?.results?.[0]?.items) {
+            items = serpData.results[0].items;
+        } else if (serpData?.items) {
+            items = serpData.items;
+        }
+        
+        if (!items || !Array.isArray(items) || items.length === 0) {
             console.log(`📝 No SERP data - using fallback`);
             return createSafeGap(keyword, teamName, sport);
         }
 
-        const items = serpData.tasks[0].result[0].items;
+        console.log(`✅ Processing ${items.length} SERP items`);
         let teamRank = null;
         const competitors = [];
         
@@ -262,14 +392,25 @@ function analyzeGap(serpData, teamName, keyword, sport) {
             try {
                 const rank = index + 1;
                 const domain = item.domain || '';
+                const title = item.title || '';
+                
+                console.log(`🔍 #${rank}: ${domain} - "${title.substring(0, 50)}"`);
+                
+                // Debug team site detection for first few results
+                if (rank <= 5) {
+                    debugTeamSiteDetection(domain, teamName);
+                }
                 
                 if (isTeamSite(domain, teamName)) {
-                    if (!teamRank) teamRank = rank;
+                    if (!teamRank) {
+                        teamRank = rank;
+                        console.log(`✅ Found team site at rank #${rank}: ${domain}`);
+                    }
                 } else if (rank <= 5) {
                     competitors.push({
                         domain,
                         rank,
-                        title: (item.title || '').substring(0, 50)
+                        title: title.substring(0, 50)
                     });
                 }
             } catch (error) {
@@ -294,7 +435,7 @@ function analyzeSafeOpportunity(keyword, teamRank, competitors, sport) {
         // Simple, safe gap detection
         if (!teamRank || teamRank > 5) {
             const hasTicketSites = competitors.some(c => 
-                c.domain && (c.domain.includes('stubhub') || c.domain.includes('ticketmaster'))
+                c.domain && (c.domain.includes('stubhub') || c.domain.includes('ticketmaster') || c.domain.includes('seatgeek'))
             );
             
             if (hasTicketSites) {
@@ -623,13 +764,6 @@ process.on('SIGTERM', () => {
     });
 });
 
-process.on('SIGINT', () => {
-    console.log('🔄 SIGINT received, shutting down gracefully');
-    server.close(() => {
-        console.log('✅ Process terminated');
-    });
-});
-
 // Catch unhandled errors
 process.on('uncaughtException', (error) => {
     console.error('❌ Uncaught Exception:', error.message);
@@ -640,3 +774,10 @@ process.on('unhandledRejection', (reason, promise) => {
     console.error('❌ Unhandled Rejection:', reason);
     // Don't exit - log and continue
 });
+    });
+});
+
+process.on('SIGINT', () => {
+    console.log('🔄 SIGINT received, shutting down gracefully');
+    server.close(() => {
+        console.log('✅ Process terminated');
